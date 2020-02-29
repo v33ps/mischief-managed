@@ -1,0 +1,22 @@
+{{define "send"}}
+{{template "header" .}}
+<div class="content text-center">
+	<h2>TinyURL</h2>
+	<div class="form-group">
+        Send a Command
+        <form action="/send" method="post">
+            <div class="row">
+                <div class="col-xs-4"></div>
+                <div class="form-group col-xs-4">
+									<textarea name="data" rows="4" cols="50">
+									At w3schools.com you will learn how to make a website. We offer free tutorials in all web development technologies.
+									</textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Shrink it!</button>
+        </form>
+    </div>
+</div>
+{{template "footer" .}}
+{{end}}
