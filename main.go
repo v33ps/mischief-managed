@@ -34,13 +34,15 @@ type Command struct {
 	Iterations  int               `json:"iterations"`
 	Params      map[string]string `json:"params"`
 	TaskID      int               `json:"taskID"`
+	State       int               `json:"state"`
 }
 
 type Client struct {
 	ClientID        int       `json:"clientID"`
 	ClientName      string    `json:"clientName"`
 	LastCheckinTime int64     `json:"lastcheckintime"`
-	OutgoingQueue   []Command `json:"outgoingQueue"`
+	TaskQueue       []Command `json:"taskQueue"`
+	Interval        float32   `json:"interval"`
 }
 
 var clientList = []Client{}
@@ -57,7 +59,7 @@ func main() {
 
 	// client facing endpionts
 	router.HandleFunc("/client/new", clientHandleNew).Methods("POST")
-	router.HandleFunc("/client/get_tasks", clientHanldGetTasks).Methods("GET")
+	router.HandleFunc("/client/get_tasks", clientHanldGetTasks).Methods("POST")
 
 	http.Handle("/", router)
 	http.ListenAndServe(":7777", nil)
@@ -111,7 +113,7 @@ func addToOutgoingQueue(cmd Command, clientID int) error {
 	for i, v := range clientList {
 		if v.ClientID == clientID {
 			// we found our client, now add the msg to their outgoingQueue
-			clientList[i].OutgoingQueue = append(v.OutgoingQueue, cmd)
+			clientList[i].TaskQueue = append(v.TaskQueue, cmd)
 			break
 		}
 	}
@@ -141,8 +143,8 @@ func clientHandleNew(w http.ResponseWriter, r *http.Request) {
 
 	client.LastCheckinTime = time.Now().Unix()
 	client.ClientID = clientIDCounter
-	client.OutgoingQueue = make([]Command, 0)
-	fmt.Println("client:", client)
+	client.TaskQueue = make([]Command, 0)
+	client.Interval = 0.5
 	clientList = append(clientList, client)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -170,26 +172,32 @@ func clientHanldGetTasks(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 	}
-
+	fmt.Println("client is: ", client.ClientID)
 	clientIndex := 0
 	// search for our client
 	for i, v := range clientList {
 		if v.ClientID == client.ClientID {
 			// we found our client, now add the msg to their outgoingQueue
-			client.OutgoingQueue = v.OutgoingQueue
+			client.TaskQueue = v.TaskQueue
 			clientIndex = i
 			break
 		}
 	}
-	fmt.Println("client: ", client)
+	if len(client.TaskQueue) > 0 {
+		fmt.Println("client has a task queue: ", client)
 
-	// send the queue back to the client
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	// w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(client); err != nil {
-		panic(err)
+		// send the queue back to the client
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		// w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(client); err != nil {
+			panic(err)
+		}
+
+		// since we've given away the outgoingQueue list, truncate the list
+		clientList[clientIndex].TaskQueue = make([]Command, 0)
+	} else {
+		w.WriteHeader(204)
+		w.Write([]byte("HTTP status code returned!"))
 	}
 
-	// since we've given away the outgoingQueue list, truncate the list
-	clientList[clientIndex].OutgoingQueue = make([]Command, 10)
 }
