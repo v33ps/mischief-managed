@@ -29,12 +29,14 @@ type Page struct {
 }
 
 type Command struct {
-	CommandType int               `json:"commandType"`
-	Function    string            `json:"function"`
-	Iterations  int               `json:"iterations"`
-	Params      map[string]string `json:"params"`
-	TaskID      int               `json:"taskID"`
-	State       int               `json:"state"`
+	CommandType    int               `json:"commandType"`
+	Function       string            `json:"function"`
+	Iterations     int               `json:"iterations"`
+	IterationDelay int               `json:"iterationDelay"`
+	Params         map[string]string `json:"params"`
+	TaskID         int               `json:"taskID"`
+	State          int               `json:"state"`
+	Block          int               `json:"block"`
 }
 
 type Client struct {
@@ -45,8 +47,15 @@ type Client struct {
 	Interval        float32   `json:"interval"`
 }
 
+type FuckYou struct {
+	Records          []Client `json:"data"`
+	QueryRecordCount int      `json:"queryRecordCount"`
+	TotalRecordCount int      `json:"totalRecordCount"`
+}
+
 var clientList = []Client{}
 var clientIDCounter = 0
+var taskIDCounter = 0
 
 func main() {
 
@@ -56,6 +65,7 @@ func main() {
 	router.HandleFunc("/", indexPage).Methods("GET")
 	router.HandleFunc("/sendPage", sendPage).Methods("GET")
 	router.HandleFunc("/send", handleSend).Methods("POST")
+	router.HandleFunc("/updateClientList", handleUpdateClientList).Methods("GET")
 
 	// client facing endpionts
 	router.HandleFunc("/client/new", clientHandleNew).Methods("POST")
@@ -77,6 +87,24 @@ func display(w http.ResponseWriter, tmpl string, data interface{}) {
 	templates.ExecuteTemplate(w, tmpl, data)
 }
 
+func handleUpdateClientList(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusCreated)
+	fuck := FuckYou{}
+	fuck.Records = clientList
+	fuck.QueryRecordCount = len(clientList)
+	fuck.TotalRecordCount = len(clientList)
+	b, err := json.Marshal(fuck)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(b))
+	if err := json.NewEncoder(w).Encode(clientList); err != nil {
+		panic(err)
+	}
+}
+
 func handleSend(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	msg := r.Form.Get("data")
@@ -89,7 +117,7 @@ func handleSend(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cmd := Command{}
+	cmd := Command{TaskID: taskIDCounter, IterationDelay: 0}
 	if err := json.Unmarshal([]byte(msg), &cmd); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
@@ -106,6 +134,7 @@ func handleSend(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode("{\"status\":\"ok\"}"); err != nil {
 		panic(err)
 	}
+	taskIDCounter = taskIDCounter + 1
 }
 
 // take the @msg from the webapp and add it to the clients queue
