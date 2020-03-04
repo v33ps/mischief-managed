@@ -35,6 +35,7 @@ type Command struct {
 	Params      map[string]string `json:"params"`
 	TaskID      int               `json:"taskID"`
 	State       int               `json:"state"`
+	Block       int               `json:"block"`
 }
 
 type Client struct {
@@ -53,6 +54,7 @@ type FuckYou struct {
 
 var clientList = []Client{}
 var clientIDCounter = 0
+var taskIDCounter = 0
 
 func main() {
 
@@ -114,7 +116,7 @@ func handleSend(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cmd := Command{}
+	cmd := Command{TaskID: taskIDCounter}
 	if err := json.Unmarshal([]byte(msg), &cmd); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
@@ -131,6 +133,7 @@ func handleSend(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode("{\"status\":\"ok\"}"); err != nil {
 		panic(err)
 	}
+	taskIDCounter = taskIDCounter + 1
 }
 
 // take the @msg from the webapp and add it to the clients queue
