@@ -1,17 +1,24 @@
 {{define "send"}}
 {{template "header" .}}
 <div class="content text-center">
-	<h2>TinyURL</h2>
-	<div class="form-group">
-        Send a Command
+	<h2>Mischief Managed</h2>
+	<div class="d-flex justify-content-left" id="clientList">
+		<h4>Available Clients </h4>
+		<a href="#" id="get-data">Get Client List</a>
+
+		<br><br>
+	</div>
+	<div class="d-flex justify-content-left" id="clientListList"></div>
+
+	<div class="form-group d-flex justify-content-center">
         <form action="/send" method="post">
+					Send a Command
+					<a href="#" id="beautify">Beautify</a>
+
             <div class="row">
-                <div class="col-xs-4"></div>
-                <div class="form-group col-xs-4">
+                <div class="form-group">
 									<input type="text" class="form-control input-lg" name="clientID" placeholder="1" required>
-									<textarea name="data" rows="4" cols="50">
-									At w3schools.com you will learn how to make a website. We offer free tutorials in all web development technologies.
-									</textarea>
+									<textarea name="data" id="textareajson" rows="4" cols="50"></textarea>
                 </div>
             </div>
 
@@ -19,5 +26,31 @@
         </form>
     </div>
 </div>
+
+<script>
+$(document).ready(function () {
+  $('#get-data').click(function () {
+    var showData = $('#show-data');
+
+    $.getJSON('http://localhost:7777/updateClientList', function (data) {
+      console.log(data);
+			var div = document.getElementById('clientListList');
+			for (var i = 0; i < data.length; i++){
+			  var obj = data[i];
+				div.innerHTML += "<br> - " + data[i].clientID + ": " + data[i].clientName
+			}
+    });
+  });
+
+	$('#beautify').click(function () {
+		var ugly = document.getElementById('textareajson').value;
+    var obj = JSON.parse(ugly);
+    var pretty = JSON.stringify(obj, undefined, 4);
+    document.getElementById('textareajson').value = pretty;
+	});
+});
+
+</script>
+
 {{template "footer" .}}
 {{end}}

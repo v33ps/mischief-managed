@@ -1,20 +1,49 @@
 {{define "main"}}
 {{template "header" .}}
 <div class="content text-center">
-	<h2>TinyURL</h2>
+	<h2>Mischief Managed</h2>
 	<div class="form-group">
         Welcome to <i>Mischief Managed</i>
-        <form action="/shorten" method="post">
-            <div class="row">
-                <div class="col-xs-4"></div>
-                <div class="form-group col-xs-4">
-                    <input type="text" class="form-control input-lg" name="url" placeholder="https://www.example.com" required>
-                </div>
-            </div>
 
-            <button type="submit" class="btn btn-primary">Shrink it!</button>
-        </form>
+
+				<table class="display table table-bordered" id="clients">
+				   <thead class="thead-dark">
+				    <tr>
+				      <th data-field="clientName">client name</th>
+				      <th data-field="clientID">client_id</th>
+				      <th data-field="lastcheckintime">last checkin time</th>
+				      <th data-field="taskQueue"> TASK Queue</th>
+				      <th data-field="interval"> checkin interval</th>
+				    </tr>
+				  </thead>
+				</table>
+
     </div>
 </div>
+<script>
+	$(document).ready(function() {
+		$.ajax({
+	       method: 'GET',
+	       url: '/updateClientList',
+	       dataType: 'json',
+	       success: function(d) {
+	          $('#clients').dataTable({
+	            data: d,
+	           columns: [
+	               { data: 'clientName' },
+	               { data: 'clientID' },
+	               { data: 'lastcheckintime' },
+	               { data: 'taskQueue' },
+	               { data: 'interval'}
+	           ]
+	         });
+	       },
+	       error: function(e) {
+	           console.log(e.responseText);
+	       }
+	    });
+	} );
+
+</script>
 {{template "footer" .}}
 {{end}}
