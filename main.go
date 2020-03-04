@@ -29,13 +29,14 @@ type Page struct {
 }
 
 type Command struct {
-	CommandType int               `json:"commandType"`
-	Function    string            `json:"function"`
-	Iterations  int               `json:"iterations"`
-	Params      map[string]string `json:"params"`
-	TaskID      int               `json:"taskID"`
-	State       int               `json:"state"`
-	Block       int               `json:"block"`
+	CommandType    int               `json:"commandType"`
+	Function       string            `json:"function"`
+	Iterations     int               `json:"iterations"`
+	IterationDelay int               `json:"iterationDelay"`
+	Params         map[string]string `json:"params"`
+	TaskID         int               `json:"taskID"`
+	State          int               `json:"state"`
+	Block          int               `json:"block"`
 }
 
 type Client struct {
@@ -116,7 +117,7 @@ func handleSend(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cmd := Command{TaskID: taskIDCounter}
+	cmd := Command{TaskID: taskIDCounter, IterationDelay: 0}
 	if err := json.Unmarshal([]byte(msg), &cmd); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
