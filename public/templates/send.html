@@ -1,31 +1,43 @@
 {{define "send"}}
 {{template "header" .}}
 <div class="content text-center">
-	<h2>Mischief Managed</h2>
-	<div class="d-flex justify-content-left" id="clientList">
-		<h4>Available Clients </h4>
-		<a href="#" id="get-data">Get Client List</a>
 
-		<br><br>
+	<div class="container">
+	    <div class="row">
+	        <div class="col-sm-3">
+						<p>Available Clients</p>
+
+					</div>
+	        <div class="col-sm-5">
+						Send a Command
+					</div>
+	        <div class="col-sm-4">
+						<p>Available Commands</p>
+					</div>
+	    </div>
+	    <div class="row">
+	        <div class="col-sm-3">
+						<a href="#" id="get-data">Get Client List</a>
+				    <div id="clientListList"></div>
+					</div>
+	        <div class="col-sm-5">
+						<a href="#" id="beautify">Beautify</a>
+
+							<div class="row">
+									<div class="form-group">
+										<input type="text" class="form-control input-lg" name="clientID" placeholder="1" required>
+										<textarea name="data" id="textareajson" rows="4" cols="50"></textarea>
+									</div>
+							</div>
+
+							<button type="submit" class="btn btn-primary">Shrink it!</button>
+						</div>
+	        <div class="col-sm-4">
+							<p>imacommand</p>
+					</div>
+	    </div>
 	</div>
-	<div class="d-flex justify-content-left" id="clientListList"></div>
 
-	<div class="form-group d-flex justify-content-center">
-        <form action="/send" method="post">
-					Send a Command
-					<a href="#" id="beautify">Beautify</a>
-
-            <div class="row">
-                <div class="form-group">
-									<input type="text" class="form-control input-lg" name="clientID" placeholder="1" required>
-									<textarea name="data" id="textareajson" rows="4" cols="50"></textarea>
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Shrink it!</button>
-        </form>
-    </div>
-</div>
 
 <script>
 $(document).ready(function () {

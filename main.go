@@ -57,9 +57,38 @@ var clientList = []Client{}
 var clientIDCounter = 0
 var taskIDCounter = 0
 
+func remove(s []Client, i int) []Client {
+	s[i] = s[len(s)-1]
+	// We do not need to put s[i] at the end, as it will be discarded anyway
+	return s[:len(s)-1]
+}
+
+// this isn't working. Keeps killing active clients
+func watchClientList() {
+	// every 10 seconds, check the client list to see if their lastcheckintime is too long gone.
+	for {
+		time.Sleep(10000 * time.Millisecond)
+		for i, v := range clientList {
+			now := time.Now().Unix()
+			if v.LastCheckinTime+15 < now {
+				fmt.Println("WE HAVE A DEAD CLIENT. CULLING {} {} {} {} :( ", v.ClientID, v.ClientName, v.LastCheckinTime+15, now)
+				clientList = remove(clientList, i)
+				fmt.Println("client list is now: ", clientList)
+			} else {
+				fmt.Println("nope", v.LastCheckinTime+15, now)
+			}
+		}
+		// for i, _ := range removeList {
+		// 	fmt.Println("removing: ", i, clientList)
+		// 	clientList = remove(clientList, i)
+		// }
+	}
+}
+
 func main() {
 
 	router := mux.NewRouter()
+	// go watchClientList()
 
 	// user facing endpoints
 	router.HandleFunc("/", indexPage).Methods("GET")
@@ -202,6 +231,9 @@ func clientHanldGetTasks(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	fmt.Println("client is: ", client.ClientID)
+	// for now, we will count this API as 'checking in', since they should always be trying to
+	// get more tasks
+	client.LastCheckinTime = time.Now().Unix()
 	clientIndex := 0
 	// search for our client
 	for i, v := range clientList {
